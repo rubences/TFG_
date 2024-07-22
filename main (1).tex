@@ -1,0 +1,975 @@
+% \documentclass{article}
+% \usepackage{graphicx} % Required for inserting images
+
+% \title{kin`7}
+% \author{lorenzo martinez}
+% \date{May 2024}
+
+% \begin{document}
+
+% \maketitle
+
+% \section{Introduction}
+
+% \end{document}
+\documentclass[12pt]{article}
+\usepackage{hyperref} % Agregamos el paquete hyperref
+\usepackage{graphicx} % Paquete para incluir imágenes
+\usepackage{amsmath} % Para las ecuaciones matemáticas
+\usepackage{amssymb}
+\usepackage[ruled,vlined]{algorithm2e} % Para el pseudocódigo
+\usepackage{lipsum} % Para texto de ejemplo
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\usepackage{listings} % Para mostrar código fuente
+\usepackage{lipsum} % Para generar texto de relleno
+\usepackage{geometry}
+\newgeometry{bottom=4.5cm, top=4.5cm, left=4.5cm, right=4.5cm}
+
+\begin{document}
+\begin{titlepage}
+    \centering
+    {\huge\bfseries Análisis utilizando técnicas de Inteligencia Artificia a través de redes GAN}\par\vspace{1.5cm}
+    {\Large Lorenzo Martínez Agudo}\par\vspace{1cm}
+    {\large Fecha: Julio 2024}\par\vfill
+\end{titlepage}
+
+Dentro del campo de la Inteligencia Artificial, la generación de imágenes es una
+parte muy desarrollada y relevante. La capacidad de crear imágenes
+convincentes y de alta calidad a partir de datos existentes se ha convertido en
+un desafío cuyo resultado se palpa en aplicaciones de diversas industrias, como
+la publicidad, el diseño o el arte.
+Este trabajo se enfoca en la generación de imágenes de coches utilizando redes
+neuronales con diferentes arquitecturas sobre las que se han sentado las bases
+para lograr resultados óptimos.
+El objetivo principal es la implementación, entrenamiento y comparación de
+distintos modelos de redes neuronales para generar imágenes de coches
+similares a las del conjunto de datos público. Los modelos que se tratan son: el
+Autocodificador Variacional (VAE), la Red Generativa Adversaria (GAN), la Red
+Generativa Adversaria Convolucional (DCGAN), la Red Generativa Adversaria de
+Crecimiento Progresivo (proGAN) y el Modelo Probabilístico de Difusión de
+Eliminación de Ruido (DDPM). Estos modelos se describen detalladamente,
+explicando sus arquitecturas, fundamentos teóricos y técnicas específicas
+aplicadas en sus entrenamientos. Como cada modelo presenta unas
+características y enfoques particulares, se evaluará su rendimiento para
+determinar cuál de ellos es más adecuado para la generación de imágenes
+sintéticas, mostrando sus ventajas y sus limitaciones, explicando cuáles son las
+aplicaciones que pueden tener estas redes y su posible impacto a futuro. La
+implementación de los modelos se lleva a cabo mediante el uso de alguna de las
+librerías de programación más relevantes de Python en este área que son:
+Tensorflow, Keras y Pytorch. Para poder generar las imágenes se emplea un
+repositorio de datos público que contiene imágenes de coches, las cuales se
+preprocesan para un mejor entrenamiento.
+Para comprobar de manera objetiva que las imágenes generadas por los modelos
+se consideran imágenes convincentes de coches se ha utilizado la inteligencia
+artificial Blip-2, siendo los resultados obtenidos favorables a lo que se esperaba
+a nivel teórico.
+\tableofcontents % Índice generado automáticamente
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+
+\section{Introducción}\label{sec:introduccion}
+
+La inteligencia artificial (IA), y el aprendizaje profundo específicamente, han experimentado un aumento y un desarrollo significativos en las últimas décadas, transformando muchas industrias y campos de investigación. Las redes neuronales generativas adversarias son un área prometedora en la ciencia de datos generativos, con el objetivo de producir datos sintéticos de alta calidad. Ian Goodfellow y sus colegas presentaron a los gans, quienes han demostrado una notable capacidad para generar datos que son casi indistinguibles de los datos reales. Esto ha aportado nuevas perspectivas en áreas como la creación de imágenes, la síntesis de voz y la generación de texto.
+
+Las Gans son geniales, pero tienen limitaciones en cuanto a uso práctico y eficiencia. La estabilidad durante el entrenamiento es un tema importante. El generador y el discriminador son dos redes neuronales que compiten en un juego de suma cero llamado gans. El generador intenta generar datos falsos que sean idénticos a los datos reales, el discriminador intenta diferenciar entre datos reales y generados. La competencia puede provocar inestabilidad en la red, donde las redes no convergen y los datos generados o el proceso de capacitación fallan por completo.
+\subsection{Motivación}
+Los datos generados no están sujetos a ningún control o interpretación. En muchas situaciones prácticas es importante no sólo producir datos reales sino también tener la capacidad de controlar y especificar ciertas características de estos datos. A modo de ejemplo, podría resultar beneficioso incluir características personales como la edad, el género o las expresiones faciales en la creación de imágenes de rostros humanos. Las gans tradicionales no son muy útiles para aplicaciones donde se necesita una personalización precisa.
+
+Además, el problema del colapso del modo es común en los gans de entrenamiento, donde el generador genera solo unos pocos ejemplos únicos, sin tener en cuenta otras posibles desviaciones de los datos. Al generador se le proporciona un número limitado de muestras que el discriminador no puede distinguir de los datos reales, por lo que no hay diversidad en los datos sintetizados.
+
+El aprendizaje profundo avanzaría al resolver estos problemas, pero también abriría nuevas posibilidades en aplicaciones del mundo real que requieren datos sintéticos de alta calidad. Los Gans se utilizan en una variedad de aplicaciones, desde entretenimiento y arte digital hasta investigación médica y seguridad informática.
+
+
+Los Gans pueden crear personajes y escenarios virtuales realistas, que pueden usarse en videojuegos y películas. Los datos artificiales pueden ayudar a reducir la escasez de datos mediante la creación de imágenes médicas que puedan usarse para entrenar modelos de diagnóstico sin comprometer la privacidad del paciente. Los Gans pueden ayudar a los sistemas de detección y reconocimiento de intrusiones creando ejemplos contradictorios.
+
+Gans es una investigación de optimización y optimización basada en la teoría de juegos y el aprendizaje profundo. Todos estos son desafíos técnicos que requieren una comprensión profunda y un enfoque innovador para resolverlos. El conocimiento teórico no es la única área de investigación en este campo, también tiene un valor práctico significativo en la creación de tecnologías más avanzadas y eficientes.
+
+Nuestro trabajo final de carrera profundizará en las intrincadas arquitecturas de los gans, sus aplicaciones y métodos para mejorar su estabilidad y control durante el entrenamiento. Analizaremos la literatura y la aplicación práctica de los modelos gan para obtener una comprensión completa y actualizada de esta tecnología y sugerencias para abordar los desafíos actuales. Se prevé que contribuya tanto a la comprensión teórica como a la implementación práctica de redes neuronales generativas adversas.
+\subsection{Estructura del TFG}
+1.3 ESTRUCTURA DEL TFG 
+A  continuación  realizamos  un  breve  resumen  del  contenido  del  resto  de  capítulos  del  pre- sente  documento.
+\begin{enumerate}[label=\textbf{\arabic*.}]
+
+    \item \textbf{Marco Teórico}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Fundamentos de las GANs}: Explicación detallada del funcionamiento de las GANs, incluyendo la teoría detrás del generador y el discriminador.
+        \item \textbf{Arquitecturas comunes de GANs}: Revisión de diferentes arquitecturas de GANs como DCGAN, WGAN, etc., y sus características principales.
+        \item \textbf{Aplicaciones de las GANs}: Descripción de aplicaciones prácticas de las GANs en diversos campos, con ejemplos específicos.
+    \end{enumerate}
+
+    \item \textbf{Objetivos}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Objetivo general}: Desarrollar y evaluar una red GAN en Python.
+        \item \textbf{Objetivos específicos}:
+        \begin{enumerate}[label=\textbf{\arabic*.}]
+            \item Implementar una arquitectura de GAN.
+            \item Entrenar la GAN utilizando un dataset específico.
+            \item Validar y evaluar el rendimiento de la GAN.
+            \item Ajustar los hiperparámetros para optimizar el rendimiento.
+        \end{enumerate}
+    \end{enumerate}
+
+    \item \textbf{Metodología}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Herramientas utilizadas}:
+        \begin{enumerate}[label=\textbf{\arabic*.}]
+            \item \textbf{Software}: Descripción de las bibliotecas y frameworks utilizados, como TensorFlow, PyTorch, etc.
+            \item \textbf{Hardware}: Especificaciones del hardware utilizado para el entrenamiento de la red.
+        \end{enumerate}
+        \item \textbf{Dataset}: Detalles sobre el conjunto de datos utilizado, incluyendo su origen, características y preprocesamiento.
+        \item \textbf{Proceso de desarrollo}: Paso a paso del desarrollo del modelo GAN, desde la arquitectura hasta el entrenamiento y validación.
+    \end{enumerate}
+
+    \item \textbf{Desarrollo}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Pipeline del sistema basado en GANs}: Descripción del flujo de trabajo completo.
+        \item \textbf{Preprocesamiento de datos}: Técnicas y métodos utilizados para preparar los datos para el entrenamiento.
+        \item \textbf{Arquitectura de la red GAN implementada}: Detalles técnicos y justificación de la elección de la arquitectura.
+        \item \textbf{Entrenamiento de la GAN}:
+        \begin{enumerate}[label=\textbf{\arabic*.}]
+            \item Configuración inicial y estrategia de entrenamiento.
+            \item Descripción de los ciclos de entrenamiento y las métricas utilizadas para evaluar el rendimiento.
+        \end{enumerate}
+        \item \textbf{Validación y evaluación}: Métodos de validación, resultados obtenidos y análisis de los mismos.
+        \item \textbf{Ajuste de hiperparámetros}: Estrategias utilizadas para ajustar los hiperparámetros y optimizar el rendimiento del modelo.
+    \end{enumerate}
+
+    \item \textbf{Resultados}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Resultados obtenidos}: Presentación de los resultados del entrenamiento y validación de la GAN.
+        \item \textbf{Comparación con otros métodos}: Análisis comparativo con otras técnicas y modelos existentes.
+        \item \textbf{Análisis de errores y limitaciones}: Identificación de posibles errores y limitaciones del modelo, y cómo pueden ser mitigados.
+    \end{enumerate}
+
+    \item \textbf{Conclusiones}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Resumen de los hallazgos}: Resumen de los principales resultados y descubrimientos del TFG.
+        \item \textbf{Implicaciones del trabajo}: Discusión sobre las implicaciones prácticas y teóricas de los resultados obtenidos.
+        \item \textbf{Posibles mejoras y trabajos futuros}: Sugerencias para futuras investigaciones y mejoras en el desarrollo de GANs.
+    \end{enumerate}
+
+    \item \textbf{Bibliografía}
+    \begin{enumerate}[label=\textbf{\arabic*.}]
+        \item \textbf{Referencias}: Lista detallada de todas las fuentes y referencias utilizadas a lo largo del trabajo.
+    \end{enumerate}
+
+\end{enumerate}
+
+
+\section{Estado del Arte}\label{sec:estado del arte}
+
+En los últimos años, las redes neuronales han experimentado un crecimiento exponencial en su aplicación para una cada vez mayor cantidad de campos, incluidos la visión por computadora, el procesamiento del lenguaje natural, la robótica y, en menor medida, la síntesis de materiales y moléculas. Las Redes Generativas Adversarias (GAN) se encuentran entre una de las arquitecturas más innovadoras y poderosas para la generación de datos realistas. La idea fundamental fue propuesta por Goodfellow et al. en 2014. Propusieron una solución donde dos redes neuronales se oponen: el generador y el discriminador. El generador genera muestras para que sean prácticamente imposibles de distinguir de las reales, mientras que el discriminador lo hace. Esta lucha se traduce en un aprendizaje de representaciones ricas y permite a GAN crear datos sintéticos realistas.
+
+Desde la propuesta inicial de las GAN, ha habido una proliferación de variaciones y extensiones de esta arquitectura. Radford et al. introdujeron DCGAN , que extendió las GAN convolucionales para generar imágenes de mayor resolución y calidad. Esto fue crítico para aplicaciones como la síntesis de imágenes fotorealistas y la producción de arte digital. Otras versiones importantes incluyen CGAN, que permite a los usuarios completar los datos generados condicionalmente controlando la salida del generador con información adicional, como etiquetas de clase. InfoGAN presentó la idea de representaciones disentangladas learning, donde la red aprende factores de variación independientes en los datos de entrada. CycleGAN resolvió el problema de la falta de coincidencia entre los datos de entrada y salida en tareas de transferencias de estilo y traducción de dominio.
+
+En términos de aplicaciones de nicho, las GAN también han mostrado ser muy prometedoras. ‘’En particular, las GAN han encontrado una amplia aplicación en la síntesis de imágenes, ya que se han utilizado para generar imágenes con una calidad y resolución sin precedentes :=: y, de hecho, ambos campos son tareas de síntesis”. Otro posible campo prometedor es la transferencia de estilo de la imagen. En cualquier caso, parece cierto que las posibilidades de las GAN no tienen límites con aplicaciones que van desde la pintura, la escultura y la artesanía hasta la colaboración creativa mediante la copia y el fitness comparado. Además, las GAN parecen ser una forma mucho más prometedora de hacer que la democracia sea más grande. A pesar de todos estos logros, sin embargo, el problema de cómo entrenar eficientemente sigue sin resolverse hasta la fecha, siendo uno de los principales problemas la inestabilidad. Este problema también puede explicarse por las carencias del enfoque GAN.
+
+Además, la evaluación cuantitativa de la calidad de las muestras generadas sigue siendo un área activa de investigación. Métricas como la divergencia de Jensen-Shannon o la distancia de Frechet se utilizan a menudo para evaluar la similitud entre las distribuciones de datos reales y las generadas, pero estas métricas pueden no captar completamente la calidad perceptiva de las muestras. La investigación futura en el campo de las GAN se centrará en abordar estos retos y explorar nuevas aplicaciones potenciales en una variedad de dominios. Se espera que el desarrollo de técnicas de entrenamiento más estables, la mejora de las métricas de evaluación y una comprensión más profunda de los principios teóricos que subyacen a los GAN conduzcan a avances significativos en este campo en los próximos años.
+
+\section{Marco Teórico}\label{sec:marco teórico}
+
+\subsection{Fundamentos de las GAN}
+Las GANs son una clase de modelos generativos que funcionan mediante un juego de suma cero entre dos redes neuronales: el generador (G) y el discriminador (D). La idea principal es que el generador intenta producir datos que se parezcan a los datos reales, mientras que el discriminador intenta distinguir entre los datos reales y los generados por el generador. Este proceso se puede resumir en los siguientes puntos clave:
+
+\subsubsection{Generador (G)}
+\begin{itemize}
+    \item \textbf{Objetivo}: Crear datos falsos que sean indistinguibles de los datos reales.
+    \item \textbf{Entrenamiento}: Recibe un vector de ruido \( z \) como entrada y lo transforma para producir un dato falso \( G(z) \).
+    \item \textbf{Pérdida}: El generador se entrena para maximizar la probabilidad de que el discriminador clasifique sus salidas \( G(z) \) como reales.
+\end{itemize}
+
+\subsubsection{Discriminador (D)}
+\begin{itemize}
+    \item \textbf{Objetivo}: Distinguir entre los datos reales (provenientes del conjunto de datos) y los datos falsos (producidos por el generador).
+    \item \textbf{Entrenamiento}: Recibe como entrada tanto datos reales \( x \) como datos generados \( G(z) \) y produce una probabilidad de que cada dato sea real.
+    \item \textbf{Pérdida}: El discriminador se entrena para maximizar la probabilidad de clasificar correctamente los datos reales y falsos.
+\end{itemize}
+
+\subsubsection{Juego Adversarial}
+
+El entrenamiento de las GANs se formula como un juego minimax entre el generador y el discriminador:
+
+\begin{equation}
+\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{\text{data}}(x)} [\log D(x)] + \mathbb{E}_{z \sim p_z(z)} [\log(1 - D(G(z)))]
+\end{equation}
+
+Aquí, \( p_{\text{data}}(x) \) es la distribución real de los datos y \( p_z(z) \) es la distribución de ruido de la que el generador extrae su entrada. Este juego lleva a un equilibrio de Nash donde ninguno de los dos jugadores (G y D) puede mejorar su estrategia sin que el otro cambie la suya.
+
+\subsubsection{Teoría Detrás del Generador y el Discriminador}
+
+\subsubsubsection{Generador}
+\begin{itemize}
+    \item \textbf{Arquitectura}: Suele ser una red neuronal profunda, a menudo una red convolucional transpuesta para generar imágenes.
+    \item \textbf{Entrenamiento}: La pérdida del generador se calcula con la función:
+
+    \begin{equation}
+    L_G = -\mathbb{E}_{z \sim p_z(z)} [\log D(G(z))]
+    \end{equation}
+
+    Esta fórmula empuja al generador a mejorar continuamente hasta que el discriminador no pueda distinguir entre datos reales y generados con una precisión mejor que el azar (50\%).
+\end{itemize}
+
+\subsubsubsection{Discriminador}
+\begin{itemize}
+    \item \textbf{Arquitectura}: Suele ser una red neuronal profunda, generalmente una red convolucional para analizar imágenes.
+    \item \textbf{Entrenamiento}: La pérdida del discriminador se calcula con la función:
+
+    \begin{equation}
+    L_D = -\left( \mathbb{E}_{x \sim p_{\text{data}}(x)} [\log D(x)] + \mathbb{E}_{z \sim p_z(z)} [\log(1 - D(G(z)))] \right)
+    \end{equation}
+
+    Esto anima al discriminador a ser cada vez mejor en diferenciar los datos reales de los generados.
+\end{itemize}
+
+\subsubsection{Entrenamiento de las GANs}
+
+\begin{enumerate}
+    \item \textbf{Inicialización}: Se inicializan las redes del generador y el discriminador con pesos aleatorios.
+    \item \textbf{Bucle de Entrenamiento}:
+    \begin{itemize}
+        \item \textbf{Paso del Discriminador}: Se actualizan los pesos del discriminador minimizando su pérdida.
+        \item \textbf{Paso del Generador}: Se actualizan los pesos del generador minimizando su pérdida, que indirectamente maximiza el error del discriminador.
+    \end{itemize}
+    \item \textbf{Iteración}: Se repiten los pasos anteriores durante varias épocas hasta que el generador produce datos que el discriminador no puede diferenciar de los reales.
+\end{enumerate}
+
+\subsubsection{Importancia del Equilibrio de Nash}
+
+El equilibrio de Nash es crucial en las GANs, ya que en este punto, el generador produce datos que son estadísticamente indistinguibles de los datos reales, y el discriminador no puede mejorar su precisión más allá del azar. Esto implica que las dos redes están perfectamente balanceadas, con el generador produciendo datos realistas y el discriminador incapaz de distinguirlos de los datos reales.
+
+\subsection{Arquitecturas comunes de las GAN}
+
+
+El documento presenta varias arquitecturas derivadas de la arquitectura original de GAN, cada una con modificaciones específicas que mejoran su rendimiento en diferentes aspectos. A continuación se detallan algunas de las principales arquitecturas derivadas:
+
+\subsubsection{GAN Semi-supervisada (SGAN)}
+SGAN incluye una variación en el discriminador que permite aprovechar datos supervisados. Se añade un cabezal adicional para la predicción de la clase de pertenencia. En casos donde se conoce la clase real, se utiliza un cabezal softmax para optimizar el discriminador. Cuando no se conoce, se usa la optimización mediante clasificación binaria típica de la GAN convencional. Este tipo de entrenamiento mejora las capacidades de SGAN respecto a la GAN original \cite{sgan}.
+
+\subsubsection{Conditional GAN (CGAN)}
+CGAN modifica el método original introduciendo una entrada adicional tanto en el generador como en el discriminador, que sirve como condicionante para ambas funciones. Esta información adicional se fusiona en el generador con el muestreo de la variable aleatoria \( z \) para generar nuevas instancias. Lo mismo ocurre en el discriminador donde \( y \) se integra con los datos \( x \) a analizar. La nueva función de optimización se expresa como:
+\begin{equation}
+\min_G \max_D E_{x \sim p_{\text{data}}} \log[D(x|y)] + E_{z \sim p_z} \log[1-D(G(z|y))]
+\end{equation}
+
+\subsubsection{Red Antagónica Generativa Convolucional Profunda (DCGAN)}
+DCGAN introduce el uso de redes convolucionales profundas tanto en el generador como en el discriminador. Esta arquitectura mejora la estabilidad del entrenamiento y permite la generación de imágenes de mayor calidad. Algunas características clave de DCGAN son el uso de convoluciones sin agrupaciones y el reemplazo de capas de pooling por convoluciones transpuestas en el generador.
+
+\subsubsection{GAN con Normalización Espectral (SNGAN)}
+SNGAN introduce la normalización espectral en las capas del discriminador para controlar la capacidad de este y mejorar la estabilidad del entrenamiento. Esta técnica regulariza las capas del discriminador, mejorando su capacidad para aprender de manera efectiva y manteniendo el equilibrio con el generador.
+
+\subsubsection{Self-Attention GAN (SAGAN)}
+SAGAN incorpora mecanismos de autoatención en el generador y el discriminador para capturar dependencias de largo alcance en las imágenes generadas. Esto mejora significativamente la calidad de las imágenes generadas, permitiendo la creación de detalles más finos y coherentes.
+
+\subsubsection{BigGAN}
+BigGAN está diseñada para la generación de imágenes de alta resolución mediante escalado. Incluye una serie de mejoras incrementales como la normalización espectral en ambas redes y el uso de normalización por lotes condicionada a la clase (CBN). Además, introduce innovaciones como el incremento del tamaño de los lotes y de las capas, y la adición de conexiones directas entre la variable latente \( z \) y las capas intermedias de la red. Estas modificaciones resultan en una mejora sustancial en la calidad de las imágenes generadas \cite{biggan}.
+
+\subsubsection{StyleGAN}
+StyleGAN propone una nueva arquitectura para el generador, manteniendo el mismo diseño para el discriminador. Sus componentes característicos incluyen el crecimiento progresivo del tamaño de la imagen generada, el uso de muestreo bilineal en los bloques de Upsample, y un enfoque novedoso en la generación de imágenes a través de un espacio de estilos. Este diseño permite un control más fino sobre el proceso de generación de imágenes, resultando en una mayor calidad y variedad de las imágenes generadas \cite{stylegan}.
+
+Estas arquitecturas derivadas representan avances significativos en el campo de las GANs, mejorando su estabilidad, eficiencia y calidad de los datos generados.
+
+
+
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+
+\section{Conceptos Básicos}\label{sec:Conceptos basicos}
+
+Ya desde el siglo pasado, la idea de una máquina capaz de realizar operaciones
+
+matemáticas y lógicas se ha materializado gracias a los esfuerzos de muchos
+
+científicos prominentes, el más notable de los cuales fue Alan Turing y los computadoras convencionales, tal como los conocemos hoy en día, fueron inventados. Incluso con
+
+esta revolucionaria tecnología, la humanidad ha manifestado un fuerte deseo de hacer que las
+
+máquinas aprendieran a resolver problemas por sí mismas exactamente de la manera en que los humanos lo hacemos a diario, y para apoyar el desarrollo de inteligencia en máquinas, los científicos han desarrollado el concepto de neuronas artificiales.
+
+El primer concepto de la neurona artificial fue introducido por un neuropsicólogo Warren McCulloch y un conocido matemático Walter Pitts en su artículo de 1943 ‘‘A Logical Calculus of Ideas Immanent in Nervous Activity’’. En el documento, los autores introdujeron un modelo de la neurona que puede realizar cálculos lógicos complejos usando proposición lógica.
+
+Básicamente el esquema de funcionamiento de las neuronas artificiales planteadas es: la neurona artificial recibe una o más entradas binarias y activa su salida en función del número de entradas activas recibidas. En este documento, los autores también demostraron que con este modelo tan simple de neurona se podía armar una RED DE NEURONAS ARTIFICIALES. La idea del Perceptrón fue lanzada en 1958 por Frank Rosenblatt como una arquitectura de Red Neuronal Artificial diseñada por una capa de neuronas de entrada y una capa de salida. La neurona de salida realiza una función de activación umbral sobre el sumatorio de las entradas x ponderadas por los pesos de las conexiones w que unen a las neuronas de entrada con la de salida.
+
+En el Perceptrón la neurona de salida realiza
+una suma ponderada de las entradas x1, x2, x3 que son los datos que quieren
+ser entrenados a la red que también pueden ser los valores de píxeles en un
+caso de una imagen. Sin embargo, como siempre, los datos que a la red se les
+pasa idealmente deben estar en un formato de un rango [0, 1] o [-1,1], para
+una eficaz aprendizaje siempre es buena práctica usar las técnicas de reescalado
+de datos como la normalización. Dicho Perceptrón contiene un algoritmo de
+aprendizaje de cambiar ponderaciones de las entradas para que la red retorne
+las salidas esperadas de acuerdo con las entradas, el Perceptrón es una recta o
+hiperplano que ajusta para que pueda ser linealmente separable para clasificación
+binaria, y para ello se necesita tres elementos:
+
+- El primero es el peso. Esto es importante para poder ponderar las entradas. 
+ Red de comunicacion. Los pesos se definen como (w1, w2,..., wn), 
+La “importancia” de los diversos insumos, es decir, lo que los hace posibles. 
+Está más o menos relacionado con el valor de salida de la red. 
+- El segundo es el desplazamiento de término independiente (sesgo). 
+Garantiza que la línea o hiperplano no necesariamente tenga que pasar  por él. 
+Origen de coordenadas. El desplazamiento se puede considerar como peso. 
+Considerando más a fondo las ecuaciones de línea recta o hiperplano procesadas por las neuronas, encontramos que  
+Esto multiplica  una entrada ficticia que siempre toma el valor 1. 
+- La tercera es una función de activación que proporciona  salida de red. en 
+ Para perceptrones, la función de activación (umbral) devuelve 1 si: 
+La suma de las entradas por peso supera un umbral (desplazamiento); 
+ en caso contrario cero. Una forma de hacer tu red más versátil y posible 
+Puede usarlo para  resolver problemas que sean más complejos que los problemas linealmente separables. 
+Se agregaron más neuronas y  capas de neuronas con funciones de activación. 
+no lineal. 
+
+Función de activación logística sigmoidea 
+Crear convirtiendo cada valor de entrada al intervalo [0,1] 
+Adecuado para su uso como función de salida en problemas de clasificación. 
+datos binarios. Esta característica tiene ventajas como la fácil derivación. 
+También se puede derivar en cualquier punto, lo que lo hace ideal para aplicaciones. 
+Algoritmos de aprendizaje automático. Su derivada o pendiente es particularmente alta para valores cercanos a cero, pero la pendiente de la curva es efectivamente cero para los siguientes valores: 
+Puede ser lento debido a entradas grandes o pequeñas. 
+ Aprendizaje de redes neuronales. La función de activación Tanh o tangente hiperbólica (2) es 
+ Introduzca un valor en el rango [-1,1]. La derivada o pendiente es mayor que el valor de la función. 
+Los valores sigmoideos cercanos a cero favorecen un aprendizaje más rápido. 
+Además, esta función está centrada en  cero, lo que permite que la red aprenda. 
+Aprender valores tanto positivos como negativos y mejorar el aprendizaje.  problema 
+La característica principal de esta función es que se aplica a valores similares al sigmoide. 
+ Independientemente de si la entrada es grande o pequeña, la pendiente es casi nula. 
+ Función de activación ReLU o función de unidad lineal modificada 
+ Esto indica que la función devuelve el mismo valor en la salida que en la entrada si: 
+Esto es mayor que cero; de lo contrario, devuelve cero. Uno de los beneficios de esta característica es que 
+es una pendiente constante y  
+Aprendizaje rápido porque es 0 para valores de entrada menores que cero. 
+1 para valores mayores que cero. Sin embargo, también existen desventajas. 
+La función ReLU puede hacer esto devolviendo cero para todos los números negativos. 
+Provoca la aparición de neuronas "muertas". H. de neuronas que se detienen 
+Las funciones no estarán disponibles durante el aprendizaje en red. 
+La función de activación de Leaky ReLU tiene una fórmula muy similar a: 
+ Regresar a ReLU 
+Devuelve el mismo valor que la entrada si la entrada es mayor que cero; de lo contrario, devuelve el mismo valor que la entrada. 
+Multiplica la entrada  por 0,01 y la devuelve. Tiene beneficios similares a 
+ Sin embargo, debido a sus similitudes, ReLU tiene ventajas adicionales sobre ReLU. 
+ReLU previene la muerte de neuronas al no ponerla completamente a cero  
+Valor negativo. Esta función también permite valores negativos.  
+El entrenamiento de la red puede volverse inestable. 
+La función de activación Swish utiliza una función sigmoidea, como se ve en su fórmula, pero con algunas modificaciones. 
+Problemas sigmoideos, ReLU y  Leaky ReLU. mientras 
+El mayor problema que esto resuelve es que la red no se vuelve inestable. sin embargo 
+La desventaja es que el cálculo es más lento que el anterior. 
+
+
+\subsection{Red neuronal multicapa}\label{sec:Red neuronal multicapa} 
+
+En 1969, el perceptrón fue recibido con escepticismo, pero este año 
+Marvin Minsky y Seymour Papert enfatizaron muchas limitaciones  
+6 
+Su libro "Perceptron" [13] tenía tal perceptrón 
+Es imposible resolver cuestiones triviales como la implementación de . 
+Puerta lógica OR exclusiva (XOR) que no es linealmente separable. No estaba ahí antes
+Seppo Rinnainmaa introdujo esto en su tesis de maestría en los años 1970. 
+Tecnología para calcular de forma automática y eficiente las gradaciones de color 
+Ahora conocido como retropropagación y sus consecuencias. 
+Implementado en 1986 por  David Rumelhart, Geoffrey Hinton y Ronald. 
+Artículo de Williams "Aprendizaje de representaciones mediante errores de retropropagación". 
+[14], entrenaron con éxito una red neuronal multicapa con funciones. 
+Activación no lineal, también conocida como MLP o perceptrón multicapa. 
+Un MLP o perceptrón multicapa consta de varias cadenas. 
+Una capa con n  neuronas con la misma función. 
+Activaciones que siguen la arquitectura del perceptrón y generan información conocida. 
+Como una red neuronal profunda donde la entrada de la capa es la salida. 
+ Capa anterior donde la entrada no considera la primera capa  
+Los datos introducidos en la red y la  capa final cuya salida es la salida de la red.
+
+Al integrar neuronas que pueden procesar movimientos simples, 
+ Le permite manejar acciones más complejas.
+
+Finalmente, en la capa de salida de la red neuronal, 
+ La función de activación normalmente se elige para que sea diferente de las funciones de activación de las capas restantes. 
+Dependiendo del problema a resolver. Por ejemplo, para resolver un problema. 
+La clasificación binaria suele utilizar una función de activación sigmoidea. 
+Devuelve un valor en el rango [0,1]. Para problemas de clasificación 
+Multiclass le permite utilizar funciones de activación de softmax. resolver 
+Las funciones de activación lineal se utilizan a menudo en problemas de regresión. 
+Sólo nivel de salida [12]. 
+
+
+
+
+
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+
+
+\subsection{Red Adversaria Generativa Convolucional}\label{sec: Red Adversaria Generativa Convolucional} 
+ 23. Red generativa adversaria convolucional 
+La función del cerebro humano siempre ha sido objeto de investigación. 
+Debido a su complejidad y  falta de comprensión, tardó décadas en desarrollarse. 
+Se trataba de cómo podía reconocer patrones visuales. 
+Cuando te muestran una foto de tu cara y te hacen preguntas 
+Lo que ve, la respuesta más probable es que reconoce caras. Cuando se le preguntó 
+Probablemente llegó a esta conclusión porque vio lo siguiente: 
+Ojos, nariz, boca…son los elementos típicos que componen el rostro. pero 
+Yendo más allá, ¿cómo sabe el cerebro qué es un ojo? ¿Por qué funciona el cerebro? 
+Distinguir los patrones que forman el ojo. Ejemplos: elipses, círculos, etc. 
+¿artículo? ¿Cuál es el límite de detección para esta serie de muestras?
+David H. Hubel y Torsten Wiesel quisieron investigar estas cuestiones. 
+14 
+Respuestas en un estudio realizado en gatos entre 1958 y 1959  [20]. interno 
+Mediante experimentos, los científicos demostraron que hay muchas neuronas en la corteza visual. 
+Los campos receptivos locales pequeños significan que estos campos 
+Sólo responden a estímulos visuales ubicados en áreas limitadas de su cuerpo. 
+campo de visión. Algunas neuronas responden a patrones verticales, mientras que otras responden a patrones verticales 
+También se demostró que existe un patrón horizontal y  que ese patrón también existe en la corteza visual. 
+Neuronas con campos receptivos más grandes para responder 
+Los patrones más complejos son combinaciones de patrones más simples. 
+Todos ellos combinados nos permiten percibir todo tipo de elementos de la realidad. 
+Está en el  campo de visión. Este mecanismo de descomposición es  el siguiente. 
+Admite redes adversarias generativas convolucionales profundas 
+(DCGAN) [18]. 
+DCGAN [21] fue desarrollado por Alec Radford en 2015. 
+Abordar las limitaciones de las GAN en la generación de imágenes. 
+La parte importante de  DCGAN está en el nombre. 
+Proviene de la Red Adversarial Generativa Convolucional Profunda inglesa. 
+ La parte de convolución proviene del hecho de que la arquitectura de esta red aprovecha eso. 
+ capa convolucional regular y capa convolucional transpuesta [22]. La convolución nos permite preservarla, de forma similar a las neuronas de la corteza visual. 
+El patrón de la imagen ingresada como entrada. su función 
+Consiste en operaciones matriciales realizadas entre los píxeles de una imagen. 
+ Lo que desea analizar y el núcleo, que es una matriz que contiene algunos valores. 
+Valores numéricos utilizados para aplicar el filtro a la imagen original a continuación 
+Acción: 
+ Ella, Kernel (azul, los números son rojos), 
+ Multiplica estos píxeles. Cuando el núcleo aplica una convolución de 3x3, 
+ Vaya a  los  primeros píxeles de la imagen y pase a los siguientes 3x3 píxeles como se muestra. 
+Se muestra en la matriz de la derecha. Este desplazamiento del kernel se conoce 
+como un tamaño de paso que indica cuántos píxeles necesita mover el núcleo 
+ Haz una curva.
+De la multiplicación de los primeros 3x3 píxeles de la imagen se realiza de la siguiente manera: 
+
+Ubicación correspondiente  en el kernel. El resultado después de la multiplicación es 
+ Agregue los valores obtenidos y agréguelos al mapa de características. 
+ El resultado de la  nueva imagen con el filtro aplicado. Valor del kernel y su valor. 
+ El tamaño es un hiperparámetro de una red neuronal que se puede cambiar  
+Obtenga varios mapas de características (imágenes filtradas). 
+La imagen de salida es más pequeña. 
+ Esto se debe al mecanismo de plegado. Por eso puedes hacerlo 
+ Rellena la imagen de salida con ceros para que el tamaño coincida con la entrada. 
+Una técnica conocida como relleno cero.
+
+Por el contrario, los giros transpuestos  tanto la entrada como el kernel se pueden distinguir en la parte superior. 
+El tamaño es 2x2, tamaño del paso = 1. El tamaño esperado para este paso es 
+La matriz resultante es (# filas del kernel + # filas de  entrada -1, # columnas 
+Kernel +  columnas de  entrada -1).
+Seleccionar idioma de salida:
+
+Spanish
+La operación es la siguiente: multiplicar el primer número de la matriz.
+
+entrada para cada número de núcleos.
+Se ingresan los resultados
+
+en los primeros campos de la matriz de tamaño resultante porque
+
+mencionado donde los elementos restantes serán cero
+Se realiza el mismo procedimiento
+
+al siguiente elemento de la matriz de entrada 
+
+el resultado es otra matriz inicializada con todos los valores establecidos en 0 (segundo
+
+comenzando desde la esquina inferior izquierda , pero esta vez es
+
+debe ingresar el resultado del cálculo moviéndolo en un campo (si tiene el paso
+
+1) en la matriz, repite el proceso hasta que no queden más números
+
+multiplicar por la matriz de entrada.
+La matriz final obtenida es de la forma:
+
+se suma, obteniendo así el resultado de la convolución transpuesta 
+
+
+Para imágenes en color (RGB), el giro es el mismo, aunque en
+
+En este caso, se necesitan tres filtros para cada canal de color y matriz.
+
+Los resultados de estos filtros se agregan a la salida para crear una imagen en color.
+
+Se tiene en cuenta que los filtros de convolución directa y normal
+
+equivalente a MLP y generalmente ponderación matricial
+
+Estos tejidos a menudo agregan compensación
+
+suma de cada elemento de la matriz.
+Entonces, en caso de que la clase
+
+convolución, los parámetros actualizados son filtros y
+
+compensar.
+
+
+\subsection{ Red Generativa Adversaria de Crecimiento Progresivo}\label{Red generativa adversaria de crecimiento progresivo}
+
+\subsection{Entrenamiento y función objetivo de la DCGAN}\label{sec. entrenamiento y funcion objetivo de la DCGAN}
+En cuanto al entrenamiento, la única distinción con respecto a las GAN es que
+se realizan normalizaciones en lote (Batch Normalization) [23], que hacen que
+los datos del lote (batch) sigan una distribución estándar, de media 0 y varianza
+1, lo que evita problemas de explosión del gradiente que consiste en que los
+valores de los gradientes que se propagan por la red son tan grandes que
+provocan que los pesos se actualicen con valores grandes y con gran variabilidad
+produciendo así inestabilidad que puede causar que la red no converja a una
+solución óptima.
+Por último, durante el entrenamiento de la DCGAN se ha observado una gran
+mejora en los resultados cuando se realizan modificaciones a las imágenes,
+concretamente cuando se utilizan las transformaciones mencionadas en el
+artículo “Differentiable Augmentation for Data-Efficient GAN Training” [24]. Las
+transformaciones se realizan, en cada iteración del entrenamiento a las
+imágenes del conjunto de datos utilizado como entrada para el discriminador
+en su fase de entrenamiento, es decir, se realizan tanto a las imágenes reales
+como a las falsas introducidas en el discriminador.
+De introducir las imágenes generadas por el generador en el discriminador
+durante la fase de entrenamiento del generador. Estas transformaciones
+consisten en la modificación del brillo, saturación, contraste y translación de
+las imágenes, de manera aleatoria
+La función objetivo de esta red es igual a la que se emplea en las GAN.
+\subsection{Autocodificador}\label{sec:autocodificador}
+Los autocodificadores son redes neuronales artificiales que permiten aprender
+mediante aprendizaje no supervisado (solo se proporciona la entrada para
+obtener la salida) representaciones densas de los datos de entrada que se
+denominan representaciones latentes o codificaciones. La tarea principal del
+autocodificador es que la salida sea igual a la entradas, pero se añaden una
+serie de restricciones que le dificultan la tarea haciendo así que aprenda formas
+eficientes de representar los datos.
+2.5.1. Arquitectura del autocodificador
+La arquitectura de los autocodificadores [29] se basa en MLP, pero se diferencia
+de la arquitectura típica en que el número de neuronas a la salida es igual al
+número de entradas de la red esto hace que la forma común de la arquitectura
+de los autocodificadores sea la de un reloj de arena.
+La arquitectura se compone de dos
+Perceptrones multicapa alimentados hacia adelante, uno para el codificador
+(parte izquierda) y otro para el decodificador (parte derecha).
+
+El autocodificador tiene dos partes: la primera es la del codificador que toma la
+entrada y la comprime en menos dimensiones, obteniéndose así las
+representaciones latentes, y la segunda es el decodificador que recibe las
+representaciones latentes del codificador y las sobredimensiona a la entrada de
+la red tratando de reconstruirla. Para ello, se hace uso de una función objetivo
+que penaliza al modelo cuando la reconstrucción es diferente a la entrada, por
+lo que el modelo trata de buscar una representación comprimida de los datos
+de entrada que sea lo más útil posible para que el decodificador pueda
+reconstruir la entrada.
+\subsection{Autocodificador variacional}\label{sec:autocodificador variacional}
+Existen múltiples modelos que hacen uso de la arquitectura de los
+autocodificadores, aunque uno de los más utilizados para la generación de
+imágenes sintéticas es el autocodificador variacional (VAE) , un tipo de
+
+autocodificador introducido en el año 2013 por Diederik Kingma y Max Welling.
+La principal diferencia con respecto a un autocodificador convencional es que
+en el VAE las codificaciones representadas por z no se producen directamente
+dada la entrada, sino que el codificador produce una codificación de media (mu) y
+desviación estándar (sigma). La codificación final es muestreada de una distribución
+Gaussiana con media (mu) y desviación estándar (sigma) y después es decodificada por
+el decodifiscador.
+\subsection{Arquitectura del VAE}\label{sec:arquitectura del vae}
+La arquitectura de los autocodificadores variacionales difiere así mismo de la de
+los autocodificadores convencionales en que la salida del autocodificador es
+probabilística debido al muestreo de una distribución, lo que permite generar
+nuevas imágenes a las recibidas en la entrada.
+De nuevo, como ocurre con el autocodificador convencional, la red del VAE se
+compone de dos MLP, uno para el codificador cuyas entradas son las imágenes del conjunto de datos y otro para el
+decodificador, mostrado a la derecha. En la parte intermedia, donde se
+producen las codificaciones, aparecen dos ramificaciones: \( \mu \) y \( \sigma \). Una de las
+codificaciones es calculada a través de la media y otra a través de la desviación
+estándar, siendo después sumadas y muestreadas para hacer de entrada del
+decodificador.
+Debido a que solo algunas de las neuronas del autocodificador variacional
+poseen una distribución, se le considera a la red un tipo de red bayesiana
+parcial.
+\subsection{Decodificador}\label{sec:decodificador}
+El Variational Autoencoder (VAE) es un tipo de modelo generativo que ha ganado popularidad en el campo del aprendizaje automático. Proporciona una forma de generar nuevas muestras de datos a partir de un espacio de representación latente. Este artículo presenta una implementación detallada del VAE, incluyendo el modelo, el proceso de entrenamiento y la función de pérdida asociada.
+
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+\section{Metodología}\label{sec:metodologia}
+
+\subsection{Introducción}
+
+Las redes generativas adversariales (GAN) son un tipo de modelo de aprendizaje profundo que consta de dos redes neuronales, un generador y un discriminador, que compiten entre sí en un juego adversarial. El generador crea muestras sintéticas que son indistinguibles de las muestras reales para el discriminador, mientras que el discriminador intenta distinguir entre las muestras reales y las sintéticas. Este proceso de entrenamiento impulsa a ambos modelos a mejorar constantemente.
+
+\subsection{Función de Pérdida}
+
+La función de pérdida de una GAN consta de dos términos: el término adversarial y el término de regularización.
+
+\begin{equation}
+    \mathcal{L}_{\text{GAN}}(G, D) = \mathbb{E}_{x \sim p_{\text{data}}(x)}[\log D(x)] + \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))]
+\end{equation}
+
+\subsection{Término Adversarial}
+
+El término adversarial mide qué tan bien está haciendo el generador al engañar al discriminador. Se compone de dos partes:
+
+\begin{itemize}
+    \item \textbf{Primera parte:} La probabilidad de que el discriminador clasifique correctamente las muestras reales como reales. En otras palabras, calculamos el logaritmo de la probabilidad de que el discriminador prediga 1 (real) para cada muestra real.
+    
+    \item \textbf{Segunda parte:} La probabilidad de que el discriminador clasifique incorrectamente las muestras generadas por el generador como reales. Calculamos el logaritmo de la probabilidad de que el discriminador prediga 0 (falso) para cada muestra generada por el generador.
+\end{itemize}
+
+La función de pérdida adversarial se define como:
+
+\begin{equation}
+    \mathcal{L}_{\text{adversarial}}(G, D) = \mathbb{E}_{x \sim p_{\text{data}}(x)}[\log D(x)] + \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))]
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item \(G\) es el generador.
+    \item \(D\) es el discriminador.
+    \item \(p_{\text{data}}(x)\) es la distribución de datos reales.
+    \item \(p_z(z)\) es la distribución de ruido latente.
+\end{itemize}
+
+\subsection{Término de Regularización}
+
+La regularización en una GAN es crucial para evitar que el generador produzca muestras que son muy diferentes de las muestras reales. Sin una regularización adecuada, el generador puede aprender a producir muestras que no se parecen en absoluto a las muestras reales, lo que resulta en una baja calidad de las muestras generadas.
+
+La divergencia de Jensen-Shannon (JS) es una medida comúnmente utilizada para medir la similitud entre dos distribuciones de probabilidad. En el contexto de las GAN, la regularización JS se utiliza para medir la distancia entre la distribución de las muestras reales y la distribución de las muestras generadas por el generador.
+
+La divergencia de Jensen-Shannon entre dos distribuciones de probabilidad P y Q se define como: 
+\begin{equation}
+\text{JS}(P || Q) = \frac{1}{2} \text{KL}(P || M) + \frac{1}{2} \text{KL}(Q || M)
+\end{equation}
+donde \( M = \frac{1}{2}(P + Q) \) es la distribución media.
+es la distribución media, y KL representa la divergencia de Kullback-Leibler, que mide la diferencia entre dos distribuciones de probabilidad.
+
+En el contexto de las GAN, la regularización JS se utiliza para forzar al generador a producir muestras que están lo más cerca posible de las muestras reales en términos de distribución de probabilidad. Esto ayuda a mejorar la calidad de las muestras generadas y a evitar que el generador produzca muestras extremadamente diferentes de las muestras reales.
+
+Para implementar la regularización JS en la función de pérdida de una GAN, se añade un término adicional a la función de pérdida adversarial. Este término mide la distancia JS entre la distribución de las muestras reales y la distribución de las muestras generadas por el generador. Al minimizar esta distancia, el generador aprende a producir muestras que se parecen más a las muestras reales.
+
+\subsection{Modelo}
+
+El VAE consta de dos partes principales: el codificador y el decodificador. El codificador mapea las muestras de entrada a un espacio de representación latente, mientras que el decodificador mapea muestras de este espacio de representación latente de vuelta al espacio de entrada.
+
+\subsubsection{Codificador}
+
+El codificador del VAE toma una muestra de entrada $x$ y la mapea a dos vectores de parámetros: $\mu$ (media) y $\sigma$ (desviación estándar), que definen la distribución aproximada $q_{\phi}(z|x)$ en el espacio latente. Este proceso se puede describir mediante las siguientes ecuaciones:
+
+\begin{align}
+    \mu &= f_{\phi}^{\mu}(x) \\
+    \log \sigma^2 &= f_{\phi}^{\sigma}(x) \\
+    q_{\phi}(z|x) &= \mathcal{N}(\mu, \sigma^2)
+\end{align}
+
+Donde $f_{\phi}^{\mu}$ y $f_{\phi}^{\sigma}$ son las funciones del codificador que producen los parámetros de la distribución latente.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+Inicializar los pesos y sesgos del codificador \\
+\While{no se cumple el criterio de parada}{
+    Leer una muestra de entrenamiento $x$ \\
+    Calcular la media $\mu$ y la desviación estándar $\sigma$ \\
+    Muestrear $z$ de $q_{\phi}(z|x)$ \\
+}
+\caption{Pseudocódigo del codificador del VAE}
+\end{algorithm}
+
+\subsubsection{Decodificador}
+
+El decodificador del VAE toma una muestra $z$ del espacio latente y la mapea de vuelta al espacio de entrada. La salida del decodificador es la reconstrucción $\tilde{x}$ de la muestra de entrada original. Este proceso se puede describir mediante la siguiente ecuación:
+
+\begin{equation}
+    \tilde{x} = g_{\theta}(z)
+\end{equation}
+
+Donde $g_{\theta}$ es la función del decodificador que mapea las muestras latentes de vuelta al espacio de entrada.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+Inicializar los pesos y sesgos del decodificador \\
+\While{no se cumple el criterio de parada}{
+    Leer una muestra de entrenamiento $x$ \\
+    Muestrear $z$ de una distribución prior $p(z)$ \\
+    Calcular la reconstrucción $\tilde{x}$ \\
+}
+\caption{Pseudocódigo del decodificador del VAE}
+\end{algorithm}
+
+\subsection{Entrenamiento}
+
+El entrenamiento del VAE implica optimizar los parámetros del codificador y el decodificador para minimizar una función de pérdida. Esta función de pérdida consta de dos términos: el término de reconstrucción y el término de regularización KL (Kullback-Leibler).
+
+\begin{equation}
+    \mathcal{L}(\theta, \phi; x) = \mathbb{E}_{q_{\phi}(z|x)}[\log p_{\theta}(x|z)] - D_{KL}(q_{\phi}(z|x) || p(z))
+\end{equation}
+
+Donde:
+\begin{itemize}
+    \item $p_{\theta}(x|z)$ es la distribución condicional de la reconstrucción.
+    \item $D_{KL}(q_{\phi}(z|x) || p(z))$ es la divergencia de Kullback-Leibler entre la distribución aproximada $q_{\phi}(z|x)$ y la distribución prior $p(z)$.
+\end{itemize}
+
+El entrenamiento del VAE se realiza mediante la maximización de esta función de pérdida utilizando técnicas de optimización como el descenso de gradiente estocástico.
+
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+\section{Desarrollo}
+
+A continuación, se muestra un ejemplo de cómo se podría implementar la función de pérdida adversarial en TensorFlow:
+
+\begin{lstlisting}[language=Python]
+import tensorflow as tf
+
+def adversarial_loss(real_output, fake_output):
+    real_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                    labels=tf.ones_like(real_output), logits=real_output))
+    fake_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                    labels=tf.zeros_like(fake_output), logits=fake_output))
+    total_loss = real_loss + fake_loss
+    return total_loss
+\end{lstlisting}
+
+El código proporciona una función llamada \text{adversarial\_loss}, que desempeña un papel crucial en el entrenamiento de una red Generativa Adversarial (GAN). En una GAN, el generador y el discriminador compiten en un juego adversarial, donde el generador intenta generar muestras sintéticas que sean indistinguibles de las muestras reales, mientras que el discriminador intenta distinguir entre muestras reales y sintéticas.
+
+
+La función \text{adversarial\_loss} toma dos argumentos: \text{real\_output} y \text{fake\_output}. Estos argumentos representan las salidas del discriminador para las muestras reales y sintéticas, respectivamente.
+
+Para calcular la pérdida adversarial, la función utiliza la entropía cruzada como medida de discrepancia entre las salidas del discriminador y las etiquetas reales o falsas correspondientes. Para las muestras reales, se calcula la entropía cruzada entre las salidas reales del discriminador y las etiquetas reales (que son 1s), mientras que para las muestras sintéticas, se calcula entre las salidas sintéticas del discriminador y las etiquetas falsas (que son 0s).
+
+Una vez calculadas las pérdidas individuales para las muestras reales y sintéticas, se utiliza la función \text{tf.reduce\_mean} para calcular la media de estas pérdidas. Esto proporciona una medida global de la pérdida adversarial.
+
+Finalmente, la pérdida total se calcula sumando la pérdida para las muestras reales y la pérdida para las muestras sintéticas. Esta pérdida total se utiliza en el proceso de optimización para entrenar tanto al generador como al discriminador de la GAN.
+
+\subsection{Algoritmo de Entrenamiento}
+
+El entrenamiento de una GAN sigue un proceso iterativo en el que se actualizan el generador y el discriminador alternativamente. Aquí se muestra el pseudocódigo del algoritmo:
+
+\begin{algorithm}[H]
+\SetAlgoLined
+Inicializar los pesos y sesgos de \(G\) y \(D\) \\
+\For{cada iteración}{
+    Muestrear un lote de datos reales \(\{x^{(1)}, \ldots, x^{(m)}\}\) \\
+    Muestrear un lote de ruido latente \(\{z^{(1)}, \ldots, z^{(m)}\}\) \\
+    Actualizar el discriminador usando el gradiente descendente en \(\mathcal{L}_{\text{GAN}}(G, D)\) \\
+    Actualizar el generador usando el gradiente ascendente en \(\mathcal{L}_{\text{GAN}}(G, D)\) \\
+}
+\caption{Algoritmo de entrenamiento de una GAN}
+\end{algorithm}
+
+Las redes Generativas Adversariales (GAN) han surgido como una poderosa técnica en el ámbito del aprendizaje profundo para la generación de datos sintéticos realistas. La idea principal detrás de una GAN es entrenar simultáneamente dos modelos de redes neuronales: un generador y un discriminador, que se enfrentan en un juego adversarial.
+
+El generador tiene la tarea de producir muestras de datos sintéticos a partir de un espacio de ruido latente. Estas muestras se generan con el objetivo de engañar al discriminador, haciéndole creer que son muestras reales. Por otro lado, el discriminador actúa como un clasificador binario que distingue entre muestras reales y sintéticas. Su función es asignar una probabilidad a cada muestra de entrada, indicando si es real o sintética.
+
+\subsection{Arquitectura y Funcionamiento Detallado}
+
+La arquitectura de una GAN consta de dos partes principales: el generador y el discriminador. El generador suele estar compuesto por una serie de capas de neuronas, donde cada capa transforma el ruido de entrada en datos sintéticos más complejos. Por otro lado, el discriminador también está formado por capas de neuronas, pero su tarea es clasificar las muestras como reales o sintéticas.
+
+Durante el entrenamiento de una GAN, el generador y el discriminador se actualizan de manera alternada en un proceso iterativo. En cada iteración, se alimenta al generador con ruido aleatorio y se generan muestras sintéticas. Estas muestras se utilizan para entrenar al discriminador, que aprende a distinguir entre muestras reales y sintéticas. A su vez, el generador se entrena con el objetivo de engañar al discriminador, mejorando la calidad de las muestras sintéticas que genera.
+
+\subsection{Aplicaciones y Potencial}
+
+Las GAN tienen una amplia variedad de aplicaciones en diferentes campos, como la generación de imágenes realistas, el procesamiento de lenguaje natural y la síntesis de audio. Gracias a su capacidad para generar datos sintéticos de alta calidad, las GAN han revolucionado la forma en que se abordan problemas como la mejora de imágenes, la generación de texto y la creación de música.
+
+En resumen, las redes GAN representan una poderosa herramienta en el campo del aprendizaje profundo, permitiendo la generación de datos sintéticos realistas que son indistinguibles de los datos reales. Su arquitectura única y su enfoque en el juego adversarial entre el generador y el discriminador hacen que sean especialmente adecuadas para una amplia gama de aplicaciones creativas y de investigación.
+
+
+\subsection{Ejemplos de Código}
+
+\subsubsection{Definición del Generador}
+
+\begin{lstlisting}[language=Python]
+import tensorflow as tf
+
+def make_generator_model():
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(256, use_bias=False, input_shape=(100,)))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.LeakyReLU())
+
+    model.add(tf.keras.layers.Dense(512, use_bias=False))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.LeakyReLU())
+
+    model.add(tf.keras.layers.Dense(784, use_bias=False, activation='tanh'))
+    return model
+\end{lstlisting}
+
+El código define una función llamada \texttt{make\_generator\_model()}, la cual se encarga de construir un modelo generador utilizando TensorFlow y Keras. En el contexto de una red Generativa Adversarial (GAN), el generador es crucial ya que toma una entrada de ruido aleatorio y produce muestras de datos sintéticos que se asemejan a las muestras reales. Este modelo generador es esencial para la capacidad de la GAN de generar datos realistas.
+
+El modelo generado es un modelo secuencial, lo que significa que las capas se apilan una encima de la otra en orden secuencial. Dentro de este modelo, se agregan varias capas que cumplen funciones específicas:
+
+La primera capa es una capa densa que recibe una entrada de ruido aleatorio de dimensión 100. Esta capa tiene 256 neuronas y no utiliza un sesgo. La elección de 256 neuronas es una decisión de diseño basada en la complejidad del problema y la cantidad de características que el generador debe aprender a generar.
+
+Después de esta capa densa, se agrega una capa de normalización por lotes. La normalización por lotes es una técnica común en el entrenamiento de redes neuronales que normaliza las activaciones de la capa anterior, lo que ayuda a estabilizar y acelerar el proceso de entrenamiento.
+
+A continuación, se agrega una función de activación LeakyReLU. La LeakyReLU es una variante de la función de activación ReLU que permite que cierta cantidad de información fluya incluso cuando la entrada es negativa, lo que puede ayudar a evitar el problema de la "muerte" de ReLU.
+
+Este patrón de agregar capas densas, normalización por lotes y funciones de activación LeakyReLU se repite una vez más, con otra capa densa de 512 neuronas y una última capa densa de 784 neuronas. La última capa utiliza la función de activación tanh para garantizar que las salidas del generador estén en el rango [-1, 1], lo que es comúnmente utilizado para imágenes.
+
+Finalmente, el modelo generador completo se devuelve para su uso en el entrenamiento de la GAN.
+
+
+
+\subsubsection{Definición del Discriminador}
+
+\begin{lstlisting}[language=Python]
+def make_discriminator_model():
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(512, input_shape=(784,)))
+    model.add(tf.keras.layers.LeakyReLU())
+    model.add(tf.keras.layers.Dropout(0.3))
+
+    model.add(tf.keras.layers.Dense(256))
+    model.add(tf.keras.layers.LeakyReLU())
+    model.add(tf.keras.layers.Dropout(0.3))
+
+    model.add(tf.keras.layers.Dense(1))
+    return model
+\end{lstlisting}
+
+La función \texttt{make\_discriminator\_model()} define un modelo discriminador utilizando TensorFlow y Keras. En el contexto de una red Generativa Adversarial (GAN), el discriminador desempeña un papel crucial al evaluar la autenticidad de las muestras, es decir, determina si una muestra dada es real o sintética.
+
+El modelo discriminador generado es un modelo secuencial, lo que significa que las capas se apilan una sobre la otra en orden secuencial. A continuación, se detalla cada capa y su función específica dentro del modelo:
+
+La primera capa es una capa densa que recibe una entrada de dimensiones (784,), que es la forma de las imágenes en el conjunto de datos MNIST utilizado en este ejemplo. Esta capa tiene 512 neuronas, lo que significa que cada neurona está conectada a cada píxel de la imagen de entrada. Esta capa inicializa el proceso de evaluación de la autenticidad de la imagen.
+
+Después de la primera capa densa, se agrega una función de activación LeakyReLU. La LeakyReLU es una variante de la función de activación ReLU que permite que cierta cantidad de información fluya incluso cuando la entrada es negativa. Esto ayuda a evitar el problema del "apagado" de ReLU y puede mejorar la capacidad del discriminador para aprender representaciones más robustas de los datos.
+
+Se añade una capa de dropout después de la activación LeakyReLU. El dropout es una técnica de regularización comúnmente utilizada en el entrenamiento de redes neuronales para reducir el sobreajuste. Esta capa de dropout desactiva aleatoriamente una fracción de las neuronas durante el entrenamiento, lo que ayuda a prevenir la dependencia excesiva de cualquier neurona particular y promueve una representación más robusta de los datos.
+
+El patrón de agregar una capa densa seguida de una activación LeakyReLU y una capa de dropout se repite una vez más, con otra capa densa de 256 neuronas. Esta segunda capa densa y su correspondiente activación y dropout ayudan a la red a aprender representaciones más complejas y abstractas de los datos.
+
+Finalmente, se agrega una capa densa con una sola neurona. Esta última capa produce la salida del discriminador, que es una estimación de la autenticidad de la muestra de entrada. Una salida cercana a 1 indica que el discriminador cree que la muestra es real, mientras que una salida cercana a 0 indica que la muestra es sintética.
+
+El modelo discriminatorio completo se devuelve para su uso en el entrenamiento de la GAN.
+
+\subsubsection{Funcion de entrenamiento}\label{sec:funcion de entrenamiento}
+\begin{lstlisting}[language=Python]
+def js_regularized_loss(real_output, fake_output, lambda_=10):
+    js_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.ones_like(real_output), logits=real_output)) + \
+              tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.zeros_like(fake_output), logits=fake_output))
+    
+    real_data = tf.reduce_mean(real_output)
+    fake_data = tf.reduce_mean(fake_output)
+    regularizer = lambda_ * tf.square(real_data - fake_data)
+    
+    total_loss = js_loss + regularizer
+    return total_loss
+\end{lstlisting}
+La función \texttt{js\_regularized\_loss} calcula la pérdida de divergencia de Jensen-Shannon (JS) con regularización para entrenar una red GAN. Veamos cada parte del código paso a paso.
+\subsubsubsection{Cálculo de la divergencia de Jensen-Shannon sin regularización}\label{sec:Cálculo de la divergencia de Jensen-Shannon sin regularización:}
+\begin{lstlisting}[language=Python]
+js_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.ones_like(real_output), logits=real_output)) + \
+          tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=tf.zeros_like(fake_output), logits=fake_output))
+\end{lstlisting}
+En esta sección, se calcula la pérdida de divergencia de Jensen-Shannon sin regularización. Para hacerlo, se utiliza la función \texttt{tf.nn.sigmoid\_cross\_entropy\_with\_logits}, que calcula la entropía cruzada entre las etiquetas reales (\texttt{tf.ones\_like(real\_output)}) y las salidas reales del discriminador (\texttt{real\_output}), y entre las etiquetas falsas (\texttt{tf.zeros\_like(fake\_output)}) y las salidas falsas del discriminador (\texttt{fake\_output}).
+
+La función \texttt{tf.nn.sigmoid\_cross\_entropy\_with\_logits} toma como argumentos las etiquetas y las salidas del discriminador, y calcula la entropía cruzada entre ellas. Esta función es comúnmente utilizada en problemas de clasificación binaria, donde se quiere medir la discrepancia entre las predicciones del modelo y las etiquetas reales.
+
+Una vez calculadas las pérdidas de entropía cruzada para las muestras reales y falsas, se calcula la media de estas dos pérdidas utilizando la función \texttt{tf.reduce\_mean}. Finalmente, estas dos medias se suman para obtener la pérdida total de Jensen-Shannon (JS).
+
+\subsubsubsection{Regularización de la divergencia de Jensen-Shannon}\label{sec:Regularización de la divergencia de Jensen-Shannon}
+\begin{lstlisting}[language=Python]
+real_data = tf.reduce_mean(real_output)
+fake_data = tf.reduce_mean(fake_output)
+regularizer = lambda_ * tf.square(real_data - fake_data)
+\end{lstlisting}
+En esta parte del proceso, se lleva a cabo la regularización de la divergencia de Jensen-Shannon. Primero, se calcula la media de las salidas reales (\texttt{real\_data}) y falsas (\texttt{fake\_data}) del discriminador. Este cálculo proporciona una medida de la distribución de las muestras reales y falsas generadas por el discriminador.
+
+A continuación, se calcula la diferencia entre estas medias y se eleva al cuadrado. Este término de regularización penaliza las distribuciones que se desvían demasiado de una distribución uniforme. En otras palabras, si la diferencia entre las medias es grande, significa que las distribuciones de las muestras reales y falsas están muy alejadas entre sí, lo que indica una inestabilidad en el entrenamiento de la GAN. Al elevar al cuadrado esta diferencia, se amplifica el efecto de la penalización, lo que ayuda a estabilizar el entrenamiento y a prevenir el colapso del modo.
+
+En resumen, esta regularización contribuye a mantener un equilibrio entre las distribuciones de las muestras reales y falsas generadas por el discriminador, lo que resulta en un entrenamiento más estable y en la producción de muestras de mayor calidad por parte del generador en una red GAN.
+
+\subsubsubsection{Cálculo de la pérdida total}\label{sec:Cálculo de la pérdida total}
+\begin{lstlisting}[language=Python]
+total_loss = js_loss + regularizer
+\end{lstlisting}
+Finalmente, para completar el cálculo de la pérdida en el entrenamiento de la Generative Adversarial Network (GAN), se suma la pérdida de divergencia de Jensen-Shannon (JS) sin regularización con el término de regularización. Esta operación combina la discrepancia entre las distribuciones de las muestras reales y falsas, medida por la pérdida de JS sin regularización, con la penalización de esta discrepancia, aplicada mediante el término de regularización.
+
+La pérdida total resultante de esta suma representa la cantidad total de error que la red GAN está tratando de minimizar durante el proceso de entrenamiento. Esta pérdida total se utilizará para calcular los gradientes y actualizar los pesos de los modelos generador y discriminador durante cada iteración del entrenamiento.
+
+Al ajustar los pesos de la red en función de esta pérdida total, la GAN aprende a generar muestras sintéticas que son cada vez más similares a las muestras reales, mientras que el discriminador aprende a distinguir de manera más precisa entre las muestras reales y las generadas. Este proceso iterativo de optimización conduce a una mejora gradual en la calidad de las muestras generadas y en la capacidad de discernimiento del discriminador, lo que resulta en una GAN entrenada capaz de producir muestras realistas y convincentes.
+Además hay que tener en cuenta que para que el frontend de la aplicación(app.js) se ejecute correctamente tiene que estar el puerto del localhost:5000 (app.py) activo y en escucha. Por lo tanto se ejecutara desde el directorio correcto en la terminal el comando Python app.py que a su vez se conecta con el archivo que contiene el script de mlflow.
+
+
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+\section{Conclusiones}\label{sec:conclusiones}
+
+Como conclusión del trabajo expuesto podemos asegurar que exploramos en profundidad el concepto de Redes Neuronales Generativas Adversariales (GAN) desde una perspectiva tanto teórica como práctica. A lo largo del trabajo, se presentan los conceptos básicos de las GAN, sus aplicaciones y los desafíos asociados con su capacitación y optimización. El uso de una red GAN en Python y un conjunto de datos de prueba que nos permitió demostrar este concepto y probar su rendimiento en situaciones del mundo real.
+\subsection{Descripcion general} 
+Se realiza una descripción general de los fundamentos teóricos y la arquitectura: una comprensión general de cómo funcionan las GAN, incluidas las funciones de los generadores y discriminadores. Además, se revisan varias arquitecturas GAN como DCGAN y WGAN, destacando sus capacidades y ventajas específicas. Implementación y capacitación: a través de una implementación práctica, mostramos cómo configurar y entrenar GAN utilizando bibliotecas de Python comso TensorFlow y PyTorch. Describe los pasos necesarios para preparar materiales, definir la arquitectura de red e implementar un plan de capacitación. Validación y pruebas: los métodos de validación se utilizan para evaluar la calidad de los datos producidos por las GAN. Los resultados obtenidos muestran que aunque las GAN son capaces de producir datos reales, su rendimiento depende principalmente de la estabilidad durante el entrenamiento y del correcto ajuste de los hiperparámetros. Ajuste de hiperparámetros: se han estudiado varias estrategias para ajustar los hiperparámetros de las GAN para mejorar su rendimiento. Este proceso muestra la importancia de parámetros como la tasa de aprendizaje, el tamaño del lote y el diseño de la red para producir resultados de calidad.
+\subsection{Implicaciones del trabajo}
+Este trabajo tiene muchas implicaciones para aplicaciones académicas y prácticas. Desde una perspectiva académica, la investigación realizada contribuye a una mejor comprensión de las GAN y los desafíos asociados a su formación. La información obtenida puede servir de base para futuras investigaciones en el campo de las redes neuronales. De hecho, las GAN tienen un enorme potencial en diversos campos, como el procesamiento de imágenes, la síntesis de voz y la creación de contenido digital. Los resultados obtenidos de este trabajo pueden informar el desarrollo de aplicaciones que requieran la generación de datos sintéticos de alta calidad. Posibles mejoras y trabajo futuro Si bien este trabajo proporciona una descripción completa de las GAN, existen varias áreas que se pueden explorar en investigaciones futuras: Avances en la estabilidad del entrenamiento: desarrollar y probar nuevos métodos que mejoren la estabilidad del entrenamiento de GAN o alivien los riesgos. reducir el riesgo. El patrón colapsa y se obtienen fuertes correlaciones. Controlar las características de los datos generados: explore formas de aumentar el control sobre las características de los datos generados por GAN, lo que permitirá una mejor personalización y rendimiento en situaciones específicas. Explore nuevas arquitecturas: evalúe el rendimiento de las arquitecturas GAN emergentes y compare sus ventajas y desventajas con las arquitecturas tradicionales. Aplicaciones en campos específicos: aplique GAN a conjuntos de datos en campos específicos como medicina, tecnología digital y seguridad informática para evaluar su efectividad y viabilidad en estos campos. En general, este programa de fin de grado demuestra el potencial de las redes neuronales generativas adversas y proporciona una base sólida para futuras investigaciones y aplicaciones en los campos de la inteligencia artificial y el aprendizaje profundo.
+\newpage
+\thispagestyle{empty} % Sin encabezado ni pie de página
+\mbox{} % Añade un espacio vacío para asegurarse de que la página esté realmente en blanco
+\section{Bibliografía}\label{sec:bibliografia}
+[1]GOODFELLOW, Ian; BENGIO, Yoshua; COURVILLE, Aaron. Deep learning. MIT press, 2016.
+[2]BENGIO, Yoshua; GOODFELLOW, Ian; COURVILLE, Aaron. Deep learning. Cambridge, MA, USA: MIT press, 2017.
+[3]FEDUS, William, et al. Many paths to equilibrium: GANs do not need to decrease a divergence at every step. arXiv preprint arXiv:1710.08446, 2017.
+
+[4]WANG, Yang. A mathematical introduction to generative adversarial nets (GAN). arXiv preprint arXiv:2009.00169, 2020.
+
+[5]DE LA TORRE, Jordi. Redes Generativas Adversarias (GAN) Fundamentos Te\'oricos y Aplicaciones. arXiv preprint arXiv:2302.09346, 2023.
+
+[6]FLÓREZ CASTRO, José Manuel. Optimización de hiperparámetros en la arquitectura Viton-GAN. 2022.
+[7]ZHANG, Han, et al. Self-attention generative adversarial networks. En International conference on machine learning. PMLR, 2019. p. 7354-7363.
+[8]NAGARAJAN, Vaishnavh; RAFFEL, Colin; GOODFELLOW, Ian J. Theoretical insights into memorization in GANs. En Neural Information Processing Systems Workshop. 2018. p. 3.
+[9]KARRAS, Tero, et al. Training generative adversarial networks with limited data. Advances in neural information processing systems, 2020, vol. 33, p. 12104-12114.
+[10]JABBAR, Abdul; LI, Xi; OMAR, Bourahla. A survey on generative adversarial networks: Variants, applications, and training. ACM Computing Surveys (CSUR), 2021, vol. 54, no 8, p. 1-49.
+[11]KONG, Jungil; KIM, Jaehyeon; BAE, Jaekyoung. Hifi-gan: Generative adversarial networks for efficient and high fidelity speech synthesis. Advances in neural information processing systems, 2020, vol. 33, p. 17022-17033.
+[12]YOON, Jinsung; DRUMRIGHT, Lydia N.; VAN DER SCHAAR, Mihaela. Anonymization through data synthesis using generative adversarial networks (ads-gan). IEEE journal of biomedical and health informatics, 2020, vol. 24, no 8, p. 2378-2388.
+[13]YANG, Tao, et al. Gan prior embedded network for blind face restoration in the wild. En Proceedings of the IEEE/CVF conference on computer vision and pattern recognition. 2021. p. 672-681.
+[14]TRAN, Ngoc-Trung, et al. On data augmentation for GAN training. IEEE Transactions on Image Processing, 2021, vol. 30, p. 1882-1897.
+[15]GOODFELLOW, Ian, et al. Generative adversarial networks. Communications of the ACM, 2020, vol. 63, no 11, p. 139-144.
+[16]GHASSEMI, Navid; SHOEIBI, Afshin; ROUHANI, Modjtaba. Deep neural network with generative adversarial networks pre-training for brain tumor classification based on MR images. Biomedical Signal Processing and Control, 2020, vol. 57, p. 101678.
+[17]GOODFELLOW, Ian, et al. Generative adversarial networks. Communications of the ACM, 2020, vol. 63, no 11, p. 139-144.
+[18]WAHEED, Abdul, et al. Covidgan: data augmentation using auxiliary classifier gan for improved covid-19 detection. Ieee Access, 2020, vol. 8, p. 91916-91923.
+[19]MA, Jiayi, et al. Pan-GAN: An unsupervised pan-sharpening method for remote sensing image fusion. Information Fusion, 2020, vol. 62, p. 110-120.
+[20]JABBAR, Abdul; LI, Xi; OMAR, Bourahla. A survey on generative adversarial networks: Variants, applications, and training. ACM Computing Surveys (CSUR), 2021, vol. 54, no 8, p. 1-49.
+[21]JIANG, Yifan; CHANG, Shiyu; WANG, Zhangyang. Transgan: Two pure transformers can make one strong gan, and that can scale up. Advances in Neural Information Processing Systems, 2021, vol. 34, p. 14745-14758.
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
+ INSERTAR FOTO EN LATEX
+\documentclass{article}
+\usepackage{graphicx} % Paquete para incluir imágenes
+
+\begin{document}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/ejemplo.png} % Ruta relativa
+    \caption{Ejemplo de imagen con ruta relativa}
+    \label{fig:relativa}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{/ruta/completa/a/la/imagen/ejemplo.png} % Ruta absoluta
+    \caption{Ejemplo de imagen con ruta absoluta}
+    \label{fig:absoluta}
+\end{figure}
+
+\end{document}
+
+//
