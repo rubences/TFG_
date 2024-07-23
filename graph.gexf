@@ -7,11 +7,11 @@
     <nodes>
       <node id="Barack" label="I-PER" />
       <node id="Obama" label="I-PER" />
-      <node id="Hawaii" label="I-LOC" />
+      <node id="Madrid" label="I-LOC" />
     </nodes>
     <edges>
       <edge source="Barack" target="Obama" id="0" />
-      <edge source="Obama" target="Hawaii" id="1" />
+      <edge source="Obama" target="Madrid" id="1" />
     </edges>
   </graph>
 </gexf>
